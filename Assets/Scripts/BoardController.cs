@@ -2,50 +2,38 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct Link
-{
-    public int begin;
-    public int end;
-
-    public int id
-    {
-        get { return Mathf.Min(begin, end) + (Mathf.Max(begin, end) << 4); }
-    }
-}
-
-public struct Node
-{
-    public int coord;
-}
-
 public class BoardController : MonoBehaviour
 {
-    public Link[] links;
+    public void setData(BoardDefinition _definition, Color _backgroundColor)
+    {
+        definition = _definition;
+        backgroundColor = _backgroundColor;
+        updateData();
+    }
 
-    public Color nodeColor;
-    public Color backgroundColor;
+    private struct Node
+    {
+        public int coord;
+    }
 
-    void Awake()
+    [SerializeField]
+    private BoardDefinition definition;
+    [SerializeField]
+    private Color backgroundColor;
+    
+
+    private List<Node> m_nodes;
+    private List<Link> m_links;
+
+    private Renderer m_renderer;
+    private MaterialPropertyBlock m_propertyBlock;
+
+    void updateData()
     {
         m_renderer = GetComponentInChildren<Renderer>();
         m_propertyBlock = new MaterialPropertyBlock();
 
-        updateData();
-    }
-
-    void Update()
-    {
-    }
-
-    void OnValidate()
-    {
-        Awake();
-    }
-
-    void updateData()
-    {
-        SanitizeLinkList(in links, out m_nodes, out m_links);
+        SanitizeLinkList(in definition.links, out m_nodes, out m_links);
 
         // NODES
         {
@@ -77,8 +65,8 @@ public class BoardController : MonoBehaviour
             m_propertyBlock.SetInt("_linkCount", linkCount);
         }
         
-        m_propertyBlock.SetColor("_nodeColor", nodeColor);
-        m_propertyBlock.SetColor("_Color", nodeColor); // edge
+        m_propertyBlock.SetColor("_nodeColor", definition.nodeColor);
+        m_propertyBlock.SetColor("_Color", definition.nodeColor); // edge
         m_propertyBlock.SetColor("_bgColor", backgroundColor);
 
         m_renderer.SetPropertyBlock(m_propertyBlock);
@@ -132,9 +120,17 @@ public class BoardController : MonoBehaviour
         }
     }
 
-    private List<Node> m_nodes;
-    private List<Link> m_links;
+    void Awake()
+    {
+        updateData();
+    }
 
-    private Renderer m_renderer;
-    private MaterialPropertyBlock m_propertyBlock;
+    void Update()
+    {
+    }
+
+    void OnValidate()
+    {
+        Awake();
+    }
 }
