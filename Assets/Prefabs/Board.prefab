@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 6715085200691610076}
   - component: {fileID: 8083323024105188703}
   - component: {fileID: 5466862695258370094}
-  m_Layer: 0
+  - component: {fileID: 6235711876637803635}
+  m_Layer: 3
   m_Name: Board
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,8 +98,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 120e4804d5fe0684aa224462c94aeba1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  links:
-  - begin: 0
-    end: 8
-  nodeColor: {r: 0, g: 0, b: 0, a: 0}
+  definition:
+    links: []
+    nodeColor: {r: 0, g: 0, b: 0, a: 0}
   backgroundColor: {r: 1, g: 1, b: 1, a: 0}
+--- !u!65 &6235711876637803635
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2717836051979647521}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.1283997, y: 2, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}

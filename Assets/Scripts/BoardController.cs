@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class BoardController : MonoBehaviour
 {
+    public Renderer renderer
+    {
+        get { return m_renderer; }
+    }
+
+    public bool grabbed = false;
+
     public void setData(BoardDefinition _definition, Color _backgroundColor)
     {
         definition = _definition;
@@ -20,7 +27,6 @@ public class BoardController : MonoBehaviour
     private BoardDefinition definition;
     [SerializeField]
     private Color backgroundColor;
-    
 
     private List<Node> m_nodes;
     private List<Link> m_links;
