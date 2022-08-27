@@ -18,6 +18,12 @@ public class BoardController : MonoBehaviour
         updateData();
     }
 
+    public void rotate(int _amount)
+    {
+        m_rotation = (((m_rotation + _amount) % 4) + 4) % 4;
+        transform.rotation = Quaternion.Euler(new Vector3(m_rotation * 90f, 0f, 0f));
+    }
+
     private struct Node
     {
         public int coord;
@@ -33,6 +39,7 @@ public class BoardController : MonoBehaviour
 
     private Renderer m_renderer;
     private MaterialPropertyBlock m_propertyBlock;
+    private int m_rotation = 0;
 
     void updateData()
     {

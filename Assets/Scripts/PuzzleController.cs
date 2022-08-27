@@ -87,5 +87,4 @@ public class PuzzleController : MonoBehaviour
     {
         m_dirty = true;
     }
-
 }

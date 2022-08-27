@@ -6,8 +6,8 @@ using UnityEngine.Assertions;
 
 public class GameManager : MonoBehaviour
 {
-    public Vector3 cameraAngle;
-    public float cameraDistance = 100f;
+    public Transform cameraCrane;
+    public RotateGizmoController rotateGizmoControllerPrefab;
 
     void Start()
     {
@@ -18,6 +18,11 @@ public class GameManager : MonoBehaviour
         {
             m_baseBoardBounds[i] = m_puzzle.boards[i].renderer.bounds;
         }
+
+        m_rotateGizmo = GameObject.Instantiate(rotateGizmoControllerPrefab, Vector3.zero, Quaternion.identity);
+        m_rotateGizmo.gameObject.SetActive(false);
+        m_rotateGizmo.leftArrowClicked += OnLeftArrowClicked;
+        m_rotateGizmo.rightArrowClicked += OnRightArrowClicked;
 
         SetupCamera();
     }
@@ -59,7 +64,7 @@ public class GameManager : MonoBehaviour
             RaycastHit hit = new RaycastHit();
             Ray ray = m_camera.ScreenPointToRay(Input.mousePosition);
             LayerMask mask = LayerMask.GetMask("Board");
-            if (Physics.Raycast(ray, out hit, cameraDistance * 10f, mask))
+            if (Physics.Raycast(ray, out hit, 10000f, mask))
             {
                 BoardController board = hit.collider.gameObject.GetComponent<BoardController>();
                 board.grabbed = true;
@@ -68,8 +73,24 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // FIND HOVERED COLUMN
+        m_currentHoveredColumn = -1;
+        for (int i = 0; i < m_baseBoardBounds.Length; ++i)
+        {
+            float xMin, xMax;
+            GetBoardXScreenBounds(m_baseBoardBounds[i], out xMin, out xMax);
+
+            if (Input.mousePosition.x >= xMin && Input.mousePosition.x <= xMax)
+            {
+                m_currentHoveredColumn = i;
+                break;
+            }
+        }
+
+        // BOARD DRAG
         if (m_grabbedBoardIndex >= 0)
         {
+            // DRAG POSITION
             Ray ray = m_camera.ScreenPointToRay(Input.mousePosition);
             Plane plane = new Plane(new Vector3(0f, 0f, -1f), Vector3.zero);
             float enter = 0f;
@@ -79,22 +100,25 @@ public class GameManager : MonoBehaviour
                 Vector3 position = m_puzzle.transform.position;
                 position.x = hitPoint.x;
                 m_puzzle.boards[m_grabbedBoardIndex].transform.position = position;
-
             }
 
-            Vector2 mousePosition = Input.mousePosition;
-            for (int i = 0; i < m_baseBoardBounds.Length; ++i)
+            // BOARD SWAP
+            if (m_currentHoveredColumn >= 0 && m_currentHoveredColumn != m_grabbedBoardIndex)
             {
-                float xMin, xMax;
-                GetBoardXScreenBounds(m_baseBoardBounds[i], out xMin, out xMax);
-
-                if (i != m_grabbedBoardIndex && mousePosition.x >= xMin && mousePosition.x <= xMax)
-                {
-                    m_puzzle.SwapBoards(m_grabbedBoardIndex, i);
-                    m_grabbedBoardIndex = i;
-                    break;
-                }
+                m_puzzle.SwapBoards(m_grabbedBoardIndex, m_currentHoveredColumn);
+                m_grabbedBoardIndex = m_currentHoveredColumn;
             }
+        }
+
+        // ROTATION GIZMO
+        if (m_grabbedBoardIndex < 0 && m_currentHoveredColumn >= 0)
+        {
+            m_rotateGizmo.gameObject.SetActive(true);
+            m_rotateGizmo.transform.position = m_puzzle.boards[m_currentHoveredColumn].transform.position;
+        }
+        else
+        {
+            m_rotateGizmo.gameObject.SetActive(false);
         }
     }
 
@@ -130,15 +154,29 @@ public class GameManager : MonoBehaviour
         Vector3 firstBoardPosition = m_puzzle.boards[0].transform.position;
         Vector3 lastBoardPosition = m_puzzle.boards[m_puzzle.boards.Count - 1].transform.position;
         Vector3 cameraReferencePoint = (firstBoardPosition + lastBoardPosition) * .5f;
+        cameraCrane.transform.position = cameraReferencePoint;
+    }
 
-        Quaternion cameraRotation = Quaternion.identity;
-        cameraRotation.eulerAngles = cameraAngle;
-        m_camera.transform.position = cameraReferencePoint + (cameraRotation * Vector3.back) * cameraDistance;
-        m_camera.transform.rotation = cameraRotation;
+    void OnLeftArrowClicked()
+    {
+        if (m_currentHoveredColumn < 0)
+            return;
+
+        m_puzzle.boards[m_currentHoveredColumn].rotate(1);
+    }
+
+    void OnRightArrowClicked()
+    {
+        if (m_currentHoveredColumn < 0)
+            return;
+
+        m_puzzle.boards[m_currentHoveredColumn].rotate(-1);
     }
 
     Camera m_camera;
     PuzzleController m_puzzle;
     int m_grabbedBoardIndex = -1;
+    int m_currentHoveredColumn = -1;
     Bounds[] m_baseBoardBounds;
+    RotateGizmoController m_rotateGizmo;
 }
